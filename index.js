@@ -53,25 +53,25 @@ async function main() {
   const grouped = {};
 
   for (const row of rows) {
-    const barcode = row[barcodeIndex];
-    const article = row[articleIndex];
-    const participate = row[participateIndex];
-    const ignore = row[ignoreIndex];
+  const barcode = row[barcodeIndex];
+  const article = row[articleIndex];
+  const participate = row[participateIndex];
+  const ignore = row[ignoreIndex];
 
-    if (!barcode || !article) continue; // Пропустить пустые строки
-    if (participate !== true) continue; // Пропустить без участия
-    if (ignore === true) continue; // Пропустить исключённые
+  if (!barcode || !article) continue; // Пропустить пустые строки
+  if (!(participate === true && ignore === true)) continue; // Новая логика отбора товаров
 
-    if (!grouped[article]) grouped[article] = [];
-    grouped[article].push({
-      photo: row[photoIndex] || '',
-      barcode: barcode,
-      stock: row[stockIndex] || 0,
-      ffStock: row[ffStockIndex] || 0,
-      size: row[sizeIndex] || '',
-      avgSales: row[avgSalesIndex] || '',
-    });
-  }
+  if (!grouped[article]) grouped[article] = [];
+  grouped[article].push({
+    photo: row[photoIndex] || '',
+    barcode: barcode,
+    stock: row[stockIndex] || 0,
+    ffStock: row[ffStockIndex] || 0,
+    size: row[sizeIndex] || '',
+    avgSales: row[avgSalesIndex] || '',
+  });
+}
+
 
   console.log('Количество артикулов для отправки:', Object.keys(grouped).length);
 
