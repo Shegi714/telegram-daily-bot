@@ -12,6 +12,8 @@ async function sendPhoto(photoUrl, caption) {
     }),
   });
   const data = await response.json();
+  console.log('Ответ от Telegram:', data);
+
   if (data.ok) {
     return data.result.message_id;
   } else {

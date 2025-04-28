@@ -5,6 +5,9 @@ const fs = require('fs');
 
 const MESSAGE_HISTORY_FILE = 'messages.json';
 
+const data = await getSheetData('bot');
+console.log('Загруженные данные из таблицы:', data);
+
 async function main() {
   const data = await getSheetData('bot');
   const oldMessages = loadMessages();
@@ -34,6 +37,7 @@ async function main() {
       grouped[article].push(row);
     }
   }
+console.log('Количество артикулов для отправки:', Object.keys(grouped).length);
 
   const newMessageIds = [];
   
