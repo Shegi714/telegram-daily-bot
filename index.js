@@ -9,6 +9,36 @@ async function main() {
   const data = await getSheetData('bot');
   console.log('Загруженные данные из таблицы:', data);
 
+  if (!data || data.length < 2) {
+    console.error('Недостаточно данных для обработки.');
+    return;
+  }
+
+  const headers = data[0]; // Первая строка — заголовки
+  const rows = data.slice(1); // Данные начинаются со второй строки
+
+  const barcodeIndex = headers.indexOf('Баркод');
+  const articleIndex = headers.indexOf('Артикул');
+  const participateIndex = headers.findIndex(col => col && col.toString().toLowerCase().includes('участвует'));
+  const ignoreIndex = headers.findIndex(col => col && col.toString().toLowerCase().includes('исключить'));
+  const photoIndex = headers.indexOf('Фото');
+  const stockIndex = headers.indexOf('Остаток WB');
+  const ffStockIndex = headers.indexOf('Остаток ФФ');
+  const sizeIndex = headers.indexOf('Размер');
+  const avgSalesIndex = headers.indexOf('Средние продажи');
+
+  console.log('Индексы колонок:', {
+    barcodeIndex,
+    articleIndex,
+    participateIndex,
+    ignoreIndex,
+    photoIndex,
+    stockIndex,
+    ffStockIndex,
+    sizeIndex,
+    avgSalesIndex
+  });
+
   const oldMessages = loadMessages();
 
   for (const id of oldMessages) {
@@ -18,23 +48,29 @@ async function main() {
       console.error('Ошибка удаления сообщения:', e.message);
     }
   }
-
   saveMessages([]);
 
-  const headers = data[0];
-  const rows = data.slice(1);
-
-  const articleIndex = 2;
   const grouped = {};
 
   for (const row of rows) {
-    const isChecked = row[5];   // 6-я колонка: участвует?
-    const isIgnored = row[6];   // 7-я колонка: исключить?
-    if (isChecked === true && isIgnored !== true) {
-      const article = row[articleIndex];
-      if (!grouped[article]) grouped[article] = [];
-      grouped[article].push(row);
-    }
+    const barcode = row[barcodeIndex];
+    const article = row[articleIndex];
+    const participate = row[participateIndex];
+    const ignore = row[ignoreIndex];
+
+    if (!barcode || !article) continue; // Пропустить пустые строки
+    if (participate !== true) continue; // Пропустить без участия
+    if (ignore === true) continue; // Пропустить исключённые
+
+    if (!grouped[article]) grouped[article] = [];
+    grouped[article].push({
+      photo: row[photoIndex] || '',
+      barcode: barcode,
+      stock: row[stockIndex] || 0,
+      ffStock: row[ffStockIndex] || 0,
+      size: row[sizeIndex] || '',
+      avgSales: row[avgSalesIndex] || '',
+    });
   }
 
   console.log('Количество артикулов для отправки:', Object.keys(grouped).length);
@@ -46,10 +82,10 @@ async function main() {
     let caption = `В Артикул ${article} необходим дозаказ❗️\n`;
 
     for (const item of items) {
-      caption += `Баркод: ${item[1]}, Остаток WB: ${item[3]}, Остаток ФФ: ${item[4]}\n`;
+      caption += `Баркод: ${item.barcode}, Остаток WB: ${item.stock}, Остаток ФФ: ${item.ffStock}\n`;
     }
 
-    const photoUrl = items.find(r => r[0])?.[0];
+    const photoUrl = items.find(item => item.photo)?.photo;
     if (photoUrl) {
       try {
         const messageId = await sendPhoto(photoUrl, caption);
@@ -72,7 +108,6 @@ function saveMessages(ids) {
   fs.writeFileSync(MESSAGE_HISTORY_FILE, JSON.stringify(ids));
 }
 
-// Вызов главной функции
 main().catch((error) => {
   console.error('Ошибка выполнения main:', error.message);
 });
