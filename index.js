@@ -6,7 +6,7 @@ const fs = require('fs');
 const MESSAGE_HISTORY_FILE = 'messages.json';
 
 async function main() {
-  const data = await getSheetData('main');
+  const data = await getSheetData('bot');
   const oldMessages = loadMessages();
   
   for (const id of oldMessages) {
