@@ -1,10 +1,15 @@
 const { google } = require('googleapis');
-const keys = require('./credentials.json');
+
+// Создаём объект credentials из переменных окружения
+const credentials = {
+  client_email: process.env.GOOGLE_CLIENT_EMAIL,
+  private_key: process.env.GOOGLE_PRIVATE_KEY.replace(/\\n/g, '\n'), // восстанавливаем переносы строк
+};
 
 const client = new google.auth.JWT(
-  keys.client_email,
+  credentials.client_email,
   null,
-  keys.private_key,
+  credentials.private_key,
   ['https://www.googleapis.com/auth/spreadsheets.readonly']
 );
 
