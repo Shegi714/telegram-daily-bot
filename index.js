@@ -5,21 +5,20 @@ const fs = require('fs');
 
 const MESSAGE_HISTORY_FILE = 'messages.json';
 
-const data = await getSheetData('bot');
-console.log('Загруженные данные из таблицы:', data);
-
 async function main() {
   const data = await getSheetData('bot');
+  console.log('Загруженные данные из таблицы:', data);
+
   const oldMessages = loadMessages();
-  
+
   for (const id of oldMessages) {
     try {
       await deleteMessage(id);
     } catch (e) {
-      console.error('Ошибка удаления:', e.message);
+      console.error('Ошибка удаления сообщения:', e.message);
     }
   }
-  
+
   saveMessages([]);
 
   const headers = data[0];
@@ -29,18 +28,19 @@ async function main() {
   const grouped = {};
 
   for (const row of rows) {
-    const isChecked = row[8];
-    const isIgnored = row[9];
+    const isChecked = row[5];   // 6-я колонка: участвует?
+    const isIgnored = row[6];   // 7-я колонка: исключить?
     if (isChecked === true && isIgnored !== true) {
       const article = row[articleIndex];
       if (!grouped[article]) grouped[article] = [];
       grouped[article].push(row);
     }
   }
-console.log('Количество артикулов для отправки:', Object.keys(grouped).length);
+
+  console.log('Количество артикулов для отправки:', Object.keys(grouped).length);
 
   const newMessageIds = [];
-  
+
   for (const article in grouped) {
     const items = grouped[article];
     let caption = `В Артикул ${article} необходим дозаказ❗️\n`;
@@ -51,8 +51,12 @@ console.log('Количество артикулов для отправки:', 
 
     const photoUrl = items.find(r => r[0])?.[0];
     if (photoUrl) {
-      const messageId = await sendPhoto(photoUrl, caption);
-      newMessageIds.push(messageId);
+      try {
+        const messageId = await sendPhoto(photoUrl, caption);
+        newMessageIds.push(messageId);
+      } catch (error) {
+        console.error('Ошибка отправки фото:', error.message);
+      }
     }
   }
 
@@ -68,4 +72,7 @@ function saveMessages(ids) {
   fs.writeFileSync(MESSAGE_HISTORY_FILE, JSON.stringify(ids));
 }
 
-main();
+// Вызов главной функции
+main().catch((error) => {
+  console.error('Ошибка выполнения main:', error.message);
+});
