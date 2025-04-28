@@ -61,6 +61,10 @@ async function main() {
   if (!barcode || !article) continue; // Пропустить пустые строки
   if (!(participate === true && ignore === true)) continue; // Новая логика отбора товаров
 
+  const isParticipate = participate === true || participate === 'TRUE';
+const isIgnore = ignore === true || ignore === 'TRUE';
+
+if (isParticipate && isIgnore) {
   if (!grouped[article]) grouped[article] = [];
   grouped[article].push({
     photo: row[photoIndex] || '',
@@ -71,6 +75,7 @@ async function main() {
     avgSales: row[avgSalesIndex] || '',
   });
 }
+
 
 
   console.log('Количество артикулов для отправки:', Object.keys(grouped).length);
