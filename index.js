@@ -19,28 +19,29 @@ async function main() {
 
   const barcodeIndex = headers.indexOf('Баркод');
   const articleIndex = headers.indexOf('Артикул');
-  const participateIndex = headers.findIndex(col => col && col.toString().toLowerCase().includes('участвует'));
-  const ignoreIndex = headers.findIndex(col => col && col.toString().toLowerCase().includes('исключить'));
   const photoIndex = headers.indexOf('Фото');
   const stockIndex = headers.indexOf('Остаток WB');
   const ffStockIndex = headers.indexOf('Остаток ФФ');
   const sizeIndex = headers.indexOf('Размер');
   const avgSalesIndex = headers.indexOf('Средние продажи');
+  const fTextIndex = 5; // F
+  const gTextIndex = 6; // G
+  const managerIndex = 9; // J
 
   console.log('Индексы колонок:', {
     barcodeIndex,
     articleIndex,
-    participateIndex,
-    ignoreIndex,
     photoIndex,
     stockIndex,
     ffStockIndex,
     sizeIndex,
-    avgSalesIndex
+    avgSalesIndex,
+    fTextIndex,
+    gTextIndex,
+    managerIndex
   });
 
   const oldMessages = loadMessages();
-
   for (const id of oldMessages) {
     try {
       await deleteMessage(id);
@@ -55,88 +56,86 @@ async function main() {
   for (const row of rows) {
     const barcode = row[barcodeIndex];
     const article = row[articleIndex];
-    const participate = row[participateIndex];
-    const ignore = row[ignoreIndex];
-
-    if (!barcode || !article) continue;
+    const fText = row[fTextIndex] || '';
+    const gText = row[gTextIndex] || '';
+    const manager = row[managerIndex] || '';
 
     const hasF = fText && fText.trim() !== '';
     const hasG = gText && gText.trim() !== '';
 
+    if (!barcode || !article || (!hasF && !hasG)) continue;
 
+    if (!grouped[article]) grouped[article] = [];
 
-
-    if (isParticipate && isIgnore) {
-      if (!grouped[article]) grouped[article] = [];
-          grouped[article].push({
-            photo: row[photoIndex] || '',
-            barcode: barcode,
-            stock: row[stockIndex] || 0,
-            ffStock: row[ffStockIndex] || 0,
-            size: row[sizeIndex] || '',
-            avgSales: row[avgSalesIndex] || '',
-            fText: row[5] || '',       // Столбец F
-            gText: row[6] || '',       // Столбец G
-            manager: row[9] || '',     // Столбец J
-});
-
-    }
+    grouped[article].push({
+      photo: row[photoIndex] || '',
+      barcode: barcode,
+      stock: row[stockIndex] || 0,
+      ffStock: row[ffStockIndex] || 0,
+      size: row[sizeIndex] || '',
+      avgSales: row[avgSalesIndex] || '',
+      fText,
+      gText,
+      manager,
+    });
   }
 
   console.log('Количество артикулов для отправки:', Object.keys(grouped).length);
 
- const newMessageIds = [];
+  const newMessageIds = [];
 
-for (const article in grouped) {
-  const items = grouped[article];
+  for (const article in grouped) {
+    const items = grouped[article];
 
-  const manager = items[0].manager;
-  const fText = items[0].fText;
-  const gText = items[0].gText;
+    const manager = items[0].manager;
+    const fText = items[0].fText;
+    const gText = items[0].gText;
 
- const hasF = fText && fText.trim() !== '';
-const hasG = gText && gText.trim() !== '';
+    const hasF = fText && fText.trim() !== '';
+    const hasG = gText && gText.trim() !== '';
 
-// --- Обработка F ---
-if (hasF) {
-  let caption = `В Артикул ${article} необходим дозаказ❗️\n${manager ? manager + ' ' : ''}${fText}\n`;
-  for (const item of items) {
-    const hasSize = item.size && item.size !== '0' && item.size !== '' && item.size !== '#N/A';
-    const label = hasSize ? `На размере ${item.size}` : `На баркоде ${item.barcode}`;
-    caption += `${label}\nОстаток WB: ${item.stock}, Остаток ФФ: ${item.ffStock}\n`;
-  }
+    // --- F логика ---
+    if (hasF) {
+      let caption = `В Артикул ${article} необходим дозаказ❗️\n${manager ? manager + ' ' : ''}${fText}\n`;
 
-  const photoUrl = items.find(item => item.photo)?.photo;
-  if (photoUrl) {
-    try {
-      const messageId = await sendPhoto(photoUrl, caption);
-      newMessageIds.push(messageId);
-    } catch (error) {
-      console.error('Ошибка отправки F-сообщения:', error.message);
+      for (const item of items) {
+        const hasSize = item.size && item.size !== '0' && item.size !== '' && item.size !== '#N/A';
+        const label = hasSize ? `На размере ${item.size}` : `На баркоде ${item.barcode}`;
+        caption += `${label}\nОстаток WB: ${item.stock}, Остаток ФФ: ${item.ffStock}\n`;
+      }
+
+      const photoUrl = items.find(item => item.photo)?.photo;
+      if (photoUrl) {
+        try {
+          const messageId = await sendPhoto(photoUrl, caption);
+          newMessageIds.push(messageId);
+        } catch (error) {
+          console.error('Ошибка отправки F-сообщения:', error.message);
+        }
+      }
+    }
+
+    // --- G логика ---
+    if (hasG) {
+      let caption = `В Артикул ${article} необходим дозаказ❗️\n${gText}\n`;
+
+      for (const item of items) {
+        const hasSize = item.size && item.size !== '0' && item.size !== '' && item.size !== '#N/A';
+        const label = hasSize ? `На размере ${item.size}` : `На баркоде ${item.barcode}`;
+        caption += `${label}\nОстаток WB: ${item.stock}, Остаток ФФ: ${item.ffStock}\n`;
+      }
+
+      const photoUrl = items.find(item => item.photo)?.photo;
+      if (photoUrl) {
+        try {
+          const messageId = await sendPhoto(photoUrl, caption);
+          newMessageIds.push(messageId);
+        } catch (error) {
+          console.error('Ошибка отправки G-сообщения:', error.message);
+        }
+      }
     }
   }
-}
-
-// --- Обработка G ---
-if (hasG) {
-  let caption = `В Артикул ${article} необходим дозаказ❗️\n${gText}\n`;
-  for (const item of items) {
-    const hasSize = item.size && item.size !== '0' && item.size !== '' && item.size !== '#N/A';
-    const label = hasSize ? `На размере ${item.size}` : `На баркоде ${item.barcode}`;
-    caption += `${label}\nОстаток WB: ${item.stock}, Остаток ФФ: ${item.ffStock}\n`;
-  }
-
-  const photoUrl = items.find(item => item.photo)?.photo;
-  if (photoUrl) {
-    try {
-      const messageId = await sendPhoto(photoUrl, caption);
-      newMessageIds.push(messageId);
-    } catch (error) {
-      console.error('Ошибка отправки G-сообщения:', error.message);
-    }
-  }
-}
-
 
   saveMessages(newMessageIds);
 }
