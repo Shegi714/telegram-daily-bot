@@ -60,8 +60,9 @@ async function main() {
 
     if (!barcode || !article) continue;
 
-    const isParticipate = participate === true || participate === 'TRUE';
-    const isIgnore = ignore === true || ignore === 'TRUE';
+    const isParticipate = String(participate).toLowerCase() === 'true';
+    const isIgnore = String(ignore).toLowerCase() === 'true';
+
 
     if (isParticipate && isIgnore) {
       if (!grouped[article]) grouped[article] = [];
