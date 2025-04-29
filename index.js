@@ -60,8 +60,9 @@ async function main() {
 
     if (!barcode || !article) continue;
 
-    const isParticipate = String(participate).toLowerCase() === 'true';
-    const isIgnore = String(ignore).toLowerCase() === 'true';
+    const isParticipate = String(participate).trim().toLowerCase() === 'true';
+    const isIgnore = String(ignore).trim().toLowerCase() === 'true';
+
 
 
     if (isParticipate && isIgnore) {
