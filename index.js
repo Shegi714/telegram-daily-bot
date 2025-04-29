@@ -96,7 +96,7 @@ async function main() {
 
     // --- F логика ---
     if (hasF) {
-      let caption = `В Артикул ${article} необходим дозаказ❗️\n${manager ? manager + ' ' : ''}${fText}\n`;
+      let caption = `В Артикул ${article} ️\n${manager ? manager + ' ' : ''}${fText}\n`;
 
       for (const item of items) {
         const hasSize = item.size && item.size !== '0' && item.size !== '' && item.size !== '#N/A';
@@ -117,7 +117,7 @@ async function main() {
 
     // --- G логика ---
     if (hasG) {
-      let caption = `В Артикул ${article} необходим дозаказ❗️\n${gText}\n`;
+      let caption = `В Артикул ${article} ️\n${gText}\n`;
 
       for (const item of items) {
         const hasSize = item.size && item.size !== '0' && item.size !== '' && item.size !== '#N/A';
