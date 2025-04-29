@@ -65,27 +65,42 @@ async function main() {
 
     if (isParticipate && isIgnore) {
       if (!grouped[article]) grouped[article] = [];
-      grouped[article].push({
-        photo: row[photoIndex] || '',
-        barcode: barcode,
-        stock: row[stockIndex] || 0,
-        ffStock: row[ffStockIndex] || 0,
-        size: row[sizeIndex] || '',
-        avgSales: row[avgSalesIndex] || '',
-      });
+          grouped[article].push({
+            photo: row[photoIndex] || '',
+            barcode: barcode,
+            stock: row[stockIndex] || 0,
+            ffStock: row[ffStockIndex] || 0,
+            size: row[sizeIndex] || '',
+            avgSales: row[avgSalesIndex] || '',
+            fText: row[5] || '',       // Столбец F
+            gText: row[6] || '',       // Столбец G
+            manager: row[9] || '',     // Столбец J
+});
+
     }
   }
 
   console.log('Количество артикулов для отправки:', Object.keys(grouped).length);
 
-  const newMessageIds = [];
+ const newMessageIds = [];
 
-  for (const article in grouped) {
-    const items = grouped[article];
-    let caption = `В Артикул ${article} необходим дозаказ❗️\n`;
+for (const article in grouped) {
+  const items = grouped[article];
 
+  const manager = items[0].manager;
+  const fText = items[0].fText;
+  const gText = items[0].gText;
+
+  const hasF = fText && fText.toLowerCase() !== 'false';
+  const hasG = gText && gText.toLowerCase() !== 'false';
+
+  // --- Обработка F ---
+  if (hasF) {
+    let caption = `В Артикул ${article} необходим дозаказ❗️\n${manager ? manager + ' ' : ''}${fText}\n`;
     for (const item of items) {
-      caption += `Баркод: ${item.barcode}, Остаток WB: ${item.stock}, Остаток ФФ: ${item.ffStock}\n`;
+      const hasSize = item.size && item.size !== '0' && item.size !== '' && item.size !== '#N/A';
+      const label = hasSize ? `На размере ${item.size}` : `На баркоде ${item.barcode}`;
+      caption += `${label}\nОстаток WB: ${item.stock}, Остаток ФФ: ${item.ffStock}\n`;
     }
 
     const photoUrl = items.find(item => item.photo)?.photo;
@@ -94,10 +109,32 @@ async function main() {
         const messageId = await sendPhoto(photoUrl, caption);
         newMessageIds.push(messageId);
       } catch (error) {
-        console.error('Ошибка отправки фото:', error.message);
+        console.error('Ошибка отправки F-сообщения:', error.message);
       }
     }
   }
+
+  // --- Обработка G ---
+  if (hasG) {
+    let caption = `В Артикул ${article} необходим дозаказ❗️\n${gText}\n`;
+    for (const item of items) {
+      const hasSize = item.size && item.size !== '0' && item.size !== '' && item.size !== '#N/A';
+      const label = hasSize ? `На размере ${item.size}` : `На баркоде ${item.barcode}`;
+      caption += `${label}\nОстаток WB: ${item.stock}, Остаток ФФ: ${item.ffStock}\n`;
+    }
+
+    const photoUrl = items.find(item => item.photo)?.photo;
+    if (photoUrl) {
+      try {
+        const messageId = await sendPhoto(photoUrl, caption);
+        newMessageIds.push(messageId);
+      } catch (error) {
+        console.error('Ошибка отправки G-сообщения:', error.message);
+      }
+    }
+  }
+}
+
 
   saveMessages(newMessageIds);
 }
