@@ -60,8 +60,9 @@ async function main() {
 
     if (!barcode || !article) continue;
 
-    const isParticipate = String(participate).trim().toLowerCase() === 'true';
-    const isIgnore = String(ignore).trim().toLowerCase() === 'true';
+    const hasF = fText && fText.trim() !== '';
+    const hasG = gText && gText.trim() !== '';
+
 
 
 
@@ -93,46 +94,45 @@ for (const article in grouped) {
   const fText = items[0].fText;
   const gText = items[0].gText;
 
-  const hasF = fText && fText.toLowerCase() !== 'false';
-  const hasG = gText && gText.toLowerCase() !== 'false';
+ const hasF = fText && fText.trim() !== '';
+const hasG = gText && gText.trim() !== '';
 
-  // --- Обработка F ---
-  if (hasF) {
-    let caption = `В Артикул ${article} необходим дозаказ❗️\n${manager ? manager + ' ' : ''}${fText}\n`;
-    for (const item of items) {
-      const hasSize = item.size && item.size !== '0' && item.size !== '' && item.size !== '#N/A';
-      const label = hasSize ? `На размере ${item.size}` : `На баркоде ${item.barcode}`;
-      caption += `${label}\nОстаток WB: ${item.stock}, Остаток ФФ: ${item.ffStock}\n`;
-    }
-
-    const photoUrl = items.find(item => item.photo)?.photo;
-    if (photoUrl) {
-      try {
-        const messageId = await sendPhoto(photoUrl, caption);
-        newMessageIds.push(messageId);
-      } catch (error) {
-        console.error('Ошибка отправки F-сообщения:', error.message);
-      }
-    }
+// --- Обработка F ---
+if (hasF) {
+  let caption = `В Артикул ${article} необходим дозаказ❗️\n${manager ? manager + ' ' : ''}${fText}\n`;
+  for (const item of items) {
+    const hasSize = item.size && item.size !== '0' && item.size !== '' && item.size !== '#N/A';
+    const label = hasSize ? `На размере ${item.size}` : `На баркоде ${item.barcode}`;
+    caption += `${label}\nОстаток WB: ${item.stock}, Остаток ФФ: ${item.ffStock}\n`;
   }
 
-  // --- Обработка G ---
-  if (hasG) {
-    let caption = `В Артикул ${article} необходим дозаказ❗️\n${gText}\n`;
-    for (const item of items) {
-      const hasSize = item.size && item.size !== '0' && item.size !== '' && item.size !== '#N/A';
-      const label = hasSize ? `На размере ${item.size}` : `На баркоде ${item.barcode}`;
-      caption += `${label}\nОстаток WB: ${item.stock}, Остаток ФФ: ${item.ffStock}\n`;
+  const photoUrl = items.find(item => item.photo)?.photo;
+  if (photoUrl) {
+    try {
+      const messageId = await sendPhoto(photoUrl, caption);
+      newMessageIds.push(messageId);
+    } catch (error) {
+      console.error('Ошибка отправки F-сообщения:', error.message);
     }
+  }
+}
 
-    const photoUrl = items.find(item => item.photo)?.photo;
-    if (photoUrl) {
-      try {
-        const messageId = await sendPhoto(photoUrl, caption);
-        newMessageIds.push(messageId);
-      } catch (error) {
-        console.error('Ошибка отправки G-сообщения:', error.message);
-      }
+// --- Обработка G ---
+if (hasG) {
+  let caption = `В Артикул ${article} необходим дозаказ❗️\n${gText}\n`;
+  for (const item of items) {
+    const hasSize = item.size && item.size !== '0' && item.size !== '' && item.size !== '#N/A';
+    const label = hasSize ? `На размере ${item.size}` : `На баркоде ${item.barcode}`;
+    caption += `${label}\nОстаток WB: ${item.stock}, Остаток ФФ: ${item.ffStock}\n`;
+  }
+
+  const photoUrl = items.find(item => item.photo)?.photo;
+  if (photoUrl) {
+    try {
+      const messageId = await sendPhoto(photoUrl, caption);
+      newMessageIds.push(messageId);
+    } catch (error) {
+      console.error('Ошибка отправки G-сообщения:', error.message);
     }
   }
 }
