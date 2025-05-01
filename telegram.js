@@ -5,7 +5,8 @@ async function sendPhoto(photoUrl, caption) {
   const payload = {
     chat_id: process.env.TELEGRAM_CHAT_ID,
     photo: photoUrl,
-    caption: caption
+    caption,
+    parse_mode: 'HTML'
   };
 
   let attempts = 0;
@@ -14,29 +15,55 @@ async function sendPhoto(photoUrl, caption) {
     const response = await fetch(url, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(payload),
+      body: JSON.stringify(payload)
     });
 
     const data = await response.json();
 
     if (data.ok) {
-      console.log('✅ Отправлено сообщение:', data.result.message_id);
+      console.log('✅ Фото отправлено:', data.result.message_id);
       return data.result.message_id;
     }
 
     if (data.error_code === 429 && data.parameters?.retry_after) {
-      const waitTime = data.parameters.retry_after;
-      console.warn(`⏳ Rate limit: ждём ${waitTime} секунд...`);
-      await new Promise(resolve => setTimeout(resolve, waitTime * 1000));
+      const wait = data.parameters.retry_after;
+      console.warn(`⏳ Rate limit. Ждём ${wait} сек...`);
+      await new Promise(resolve => setTimeout(resolve, wait * 1000));
+    } else if (data.error_code === 400 || data.error_code === 404) {
+      console.warn(`⚠️ sendPhoto не сработал (code ${data.error_code}). Используем sendMessage`);
+      return await sendMessageWithFallback(photoUrl, caption);
     } else {
-      console.error('❌ Ошибка Telegram:', data.description);
       throw new Error(data.description);
     }
 
     attempts++;
   }
 
-  throw new Error('Не удалось отправить сообщение после 5 попыток.');
+  throw new Error('sendPhoto: не удалось после 5 попыток');
+}
+
+async function sendMessageWithFallback(photoUrl, caption) {
+  const url = `https://api.telegram.org/bot${process.env.TELEGRAM_TOKEN}/sendMessage`;
+  const payload = {
+    chat_id: process.env.TELEGRAM_CHAT_ID,
+    text: `${caption}\n\nФото: ${photoUrl}`,
+    parse_mode: 'HTML'
+  };
+
+  const response = await fetch(url, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(payload)
+  });
+
+  const data = await response.json();
+
+  if (data.ok) {
+    console.log('✅ Fallback-сообщение отправлено:', data.result.message_id);
+    return data.result.message_id;
+  }
+
+  throw new Error(`sendMessage fallback: ${data.description}`);
 }
 
 async function deleteMessage(messageId) {
@@ -49,20 +76,19 @@ async function deleteMessage(messageId) {
   const response = await fetch(url, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(payload),
+    body: JSON.stringify(payload)
   });
 
   const data = await response.json();
 
   if (!data.ok) {
     if (data.error_code === 429 && data.parameters?.retry_after) {
-      const waitTime = data.parameters.retry_after;
-      console.warn(`⏳ Rate limit на удаление: ждём ${waitTime} секунд...`);
-      await new Promise(resolve => setTimeout(resolve, waitTime * 1000));
-      return deleteMessage(messageId); // retry
+      const wait = data.parameters.retry_after;
+      console.warn(`⏳ Rate limit удаления. Ждём ${wait} сек...`);
+      await new Promise(resolve => setTimeout(resolve, wait * 1000));
+      return deleteMessage(messageId);
     }
 
-    // ✅ Просто логируем, если сообщение уже удалено или не найдено
     if (data.error_code === 400) {
       console.warn(`⚠️ Сообщение ${messageId} уже удалено или не найдено`);
       return false;

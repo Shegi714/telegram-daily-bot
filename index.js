@@ -33,7 +33,6 @@ async function main() {
     ffStockIndex, sizeIndex, avgSalesIndex, fTextIndex, gTextIndex, managerIndex
   });
 
-  // Удаляем старые сообщения
   const oldMessages = loadMessages();
   for (const id of oldMessages) {
     try {
@@ -89,21 +88,14 @@ async function main() {
 
     const photoUrl = fItems.find(item => item.photo)?.photo;
     if (photoUrl) {
-  console.log('📸 Отправка F-сообщения:', {
-    photoUrl,
-    caption: caption.trim()
-  });
-
-  try {
-    const messageId = await sendPhoto(photoUrl, caption.trim());
-    newMessageIds.push(messageId);
-  } catch (err) {
-    console.error('Ошибка отправки F-сообщения:', err.message);
-  }
-} else {
-  console.warn(`⚠️ Нет photoUrl для артикула ${article} (F)`);
-}
-
+      console.log('📸 Отправка F-сообщения:', { photoUrl, caption: caption.trim() });
+      try {
+        const messageId = await sendPhoto(photoUrl, caption.trim());
+        newMessageIds.push(messageId);
+      } catch (err) {
+        console.error('Ошибка отправки F-сообщения:', err.message);
+      }
+    }
   }
 
   // === G ===
@@ -127,21 +119,14 @@ async function main() {
 
     const photoUrl = gItems.find(item => item.photo)?.photo;
     if (photoUrl) {
-  console.log('📸 Отправка G-сообщения:', {
-    photoUrl,
-    caption: caption.trim()
-  });
-
-  try {
-    const messageId = await sendPhoto(photoUrl, caption.trim());
-    newMessageIds.push(messageId);
-  } catch (err) {
-    console.error('Ошибка отправки G-сообщения:', err.message);
-  }
-} else {
-  console.warn(`⚠️ Нет photoUrl для артикула ${article} (G)`);
-}
-
+      console.log('📸 Отправка G-сообщения:', { photoUrl, caption: caption.trim() });
+      try {
+        const messageId = await sendPhoto(photoUrl, caption.trim());
+        newMessageIds.push(messageId);
+      } catch (err) {
+        console.error('Ошибка отправки G-сообщения:', err.message);
+      }
+    }
   }
 
   saveMessages(newMessageIds);
