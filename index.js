@@ -47,7 +47,6 @@ async function main() {
   const newMessageIds = [];
   const groupedByArticle = {};
 
-  // Группировка по артикулу
   for (const row of rows) {
     const article = row[articleIndex];
     if (!article) continue;
@@ -69,68 +68,68 @@ async function main() {
 
   const allArticles = Object.keys(groupedByArticle).sort();
 
-  // Сначала обрабатываем F-группу
+  // === F ===
   for (const article of allArticles) {
-    const items = groupedByArticle[article];
-    const fItems = items.filter(i => i.fText && i.fText.trim() !== '');
+    const fItems = groupedByArticle[article].filter(i => i.fText && i.fText.trim() !== '');
+    if (fItems.length === 0) continue;
 
-    if (fItems.length > 0) {
-      let caption = `В Артикул ${article}\n\n`;
+    let caption = `В Артикул ${article}\n\n`;
 
-      for (const item of fItems) {
-        const hasSize = item.size && item.size !== '0' && item.size !== '' && item.size !== '#N/A';
-        const label = hasSize ? `На размере ${item.size}` : `На баркоде ${item.barcode}`;
-        const avg = !isNaN(item.avgSales) && item.avgSales !== '' ? `средние продажи в день ${item.avgSales}шт.` : '';
+    for (const item of fItems) {
+      const hasSize = item.size && item.size !== '0' && item.size !== '' && item.size !== '#N/A';
+      const label = hasSize ? `На размере ${item.size}` : `На баркоде ${item.barcode}`;
 
-        caption += `${label}, ${avg}\n`;
-        caption += `${item.manager ? item.manager + ', ' : ''}${item.fText.trim()}\n`;
-        caption += `Остаток WB: ${item.stock}, Остаток ФФ: ${item.ffStock}\n\n`;
-      }
+      const rawAvg = item.avgSales?.toString().replace(',', '.');
+      const avg = !isNaN(parseFloat(rawAvg)) ? `средние продажи в день ${rawAvg}шт.` : '';
 
-      const photoUrl = fItems.find(item => item.photo)?.photo;
-      if (photoUrl) {
-        try {
-          const messageId = await sendPhoto(photoUrl, caption.trim());
-          newMessageIds.push(messageId);
-        } catch (err) {
-          console.error('Ошибка отправки F-сообщения:', err.message);
-        }
+      caption += `${label}, ${avg}\n`;
+      caption += `${item.manager ? item.manager + ', ' : ''}${item.fText.trim()}\n`;
+      caption += `Остаток WB: ${item.stock}, Остаток ФФ: ${item.ffStock}\n\n`;
+    }
+
+    const photoUrl = fItems.find(item => item.photo)?.photo;
+    if (photoUrl) {
+      try {
+        const messageId = await sendPhoto(photoUrl, caption.trim());
+        newMessageIds.push(messageId);
+      } catch (err) {
+        console.error('Ошибка отправки F-сообщения:', err.message);
       }
     }
   }
 
-  // Затем обрабатываем G-группу
+  // === G ===
   for (const article of allArticles) {
-    const items = groupedByArticle[article];
-    const gItems = items.filter(i => i.gText && i.gText.trim() !== '');
+    const gItems = groupedByArticle[article].filter(i => i.gText && i.gText.trim() !== '');
+    if (gItems.length === 0) continue;
 
-    if (gItems.length > 0) {
-      let caption = `В Артикул ${article}\n\n`;
+    let caption = `В Артикул ${article}\n\n`;
 
-      for (const item of gItems) {
-        const hasSize = item.size && item.size !== '0' && item.size !== '' && item.size !== '#N/A';
-        const label = hasSize ? `На размере ${item.size}` : `На баркоде ${item.barcode}`;
-        const avg = !isNaN(item.avgSales) && item.avgSales !== '' ? `средние продажи в день ${item.avgSales}шт.` : '';
+    for (const item of gItems) {
+      const hasSize = item.size && item.size !== '0' && item.size !== '' && item.size !== '#N/A';
+      const label = hasSize ? `На размере ${item.size}` : `На баркоде ${item.barcode}`;
 
-        caption += `${label}, ${avg}\n`;
-        caption += `${item.gText.trim()}\n`;
-        caption += `Остаток WB: ${item.stock}, Остаток ФФ: ${item.ffStock}\n\n`;
-      }
+      const rawAvg = item.avgSales?.toString().replace(',', '.');
+      const avg = !isNaN(parseFloat(rawAvg)) ? `средние продажи в день ${rawAvg}шт.` : '';
 
-      const photoUrl = gItems.find(item => item.photo)?.photo;
-      if (photoUrl) {
-        try {
-          const messageId = await sendPhoto(photoUrl, caption.trim());
-          newMessageIds.push(messageId);
-        } catch (err) {
-          console.error('Ошибка отправки G-сообщения:', err.message);
-        }
+      caption += `${label}, ${avg}\n`;
+      caption += `${item.gText.trim()}\n`;
+      caption += `Остаток WB: ${item.stock}, Остаток ФФ: ${item.ffStock}\n\n`;
+    }
+
+    const photoUrl = gItems.find(item => item.photo)?.photo;
+    if (photoUrl) {
+      try {
+        const messageId = await sendPhoto(photoUrl, caption.trim());
+        newMessageIds.push(messageId);
+      } catch (err) {
+        console.error('Ошибка отправки G-сообщения:', err.message);
       }
     }
   }
 
   saveMessages(newMessageIds);
-} // <-- вот закрывающая скобка main
+}
 
 function loadMessages() {
   if (!fs.existsSync(MESSAGE_HISTORY_FILE)) return [];
