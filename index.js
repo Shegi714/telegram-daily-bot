@@ -136,3 +136,7 @@ function loadMessages() {
 function saveMessages(ids) {
   fs.writeFileSync(MESSAGE_HISTORY_FILE, JSON.stringify(ids));
 }
+
+main().catch((error) => {
+  console.error('Ошибка выполнения main:', error.message);
+});
