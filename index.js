@@ -67,65 +67,64 @@ async function main() {
     });
   }
 
-  // Обработка каждого артикула
-  for (const article in groupedByArticle) {
-    const items = groupedByArticle[article];
+// --- Сначала отправляем ВСЕ F-сообщения ---
+for (const article in groupedByArticle) {
+  const items = groupedByArticle[article];
+  const fItems = items.filter(i => i.fText && i.fText.trim() !== '');
 
-    const fItems = items.filter(i => i.fText && i.fText.trim() !== '');
-    const gItems = items.filter(i => i.gText && i.gText.trim() !== '');
+  if (fItems.length > 0) {
+    let caption = `В Артикул ${article}\n\n`;
 
-    // F сообщение
-    if (fItems.length > 0) {
-      let caption = `В Артикул ${article}\n\n`;
+    for (const item of fItems) {
+      const hasSize = item.size && item.size !== '0' && item.size !== '' && item.size !== '#N/A';
+      const label = hasSize ? `На размере ${item.size}` : `На баркоде ${item.barcode}`;
+      const avg = !isNaN(item.avgSales) && item.avgSales !== '' ? `средние продажи в день ${item.avgSales}шт.` : '';
 
-      for (const item of fItems) {
-        const hasSize = item.size && item.size !== '0' && item.size !== '' && item.size !== '#N/A';
-        const label = hasSize ? `На размере ${item.size}` : `На баркоде ${item.barcode}`;
-        const avg = !isNaN(item.avgSales) && item.avgSales !== '' ? `средние продажи в день ${item.avgSales}шт.` : '';
-
-        caption += `${label}, ${avg}\n`;
-        caption += `${item.manager ? item.manager + ', ' : ''}${item.fText.trim()}\n`;
-        caption += `Остаток WB: ${item.stock}, Остаток ФФ: ${item.ffStock}\n\n`;
-      }
-
-      const photoUrl = fItems.find(item => item.photo)?.photo;
-      if (photoUrl) {
-        try {
-          const messageId = await sendPhoto(photoUrl, caption.trim());
-          newMessageIds.push(messageId);
-        } catch (err) {
-          console.error('Ошибка отправки F-сообщения:', err.message);
-        }
-      }
+      caption += `${label}, ${avg}\n`;
+      caption += `${item.manager ? item.manager + ', ' : ''}${item.fText.trim()}\n`;
+      caption += `Остаток WB: ${item.stock}, Остаток ФФ: ${item.ffStock}\n\n`;
     }
 
-    // G сообщение
-    if (gItems.length > 0) {
-      let caption = `В Артикул ${article}\n\n`;
-
-      for (const item of gItems) {
-        const hasSize = item.size && item.size !== '0' && item.size !== '' && item.size !== '#N/A';
-        const label = hasSize ? `На размере ${item.size}` : `На баркоде ${item.barcode}`;
-        const avg = !isNaN(item.avgSales) && item.avgSales !== '' ? `средние продажи в день ${item.avgSales}шт.` : '';
-
-        caption += `${label}, ${avg}\n`;
-        caption += `${item.gText.trim()}\n`;
-        caption += `Остаток WB: ${item.stock}, Остаток ФФ: ${item.ffStock}\n\n`;
-      }
-
-      const photoUrl = gItems.find(item => item.photo)?.photo;
-      if (photoUrl) {
-        try {
-          const messageId = await sendPhoto(photoUrl, caption.trim());
-          newMessageIds.push(messageId);
-        } catch (err) {
-          console.error('Ошибка отправки G-сообщения:', err.message);
-        }
+    const photoUrl = fItems.find(item => item.photo)?.photo;
+    if (photoUrl) {
+      try {
+        const messageId = await sendPhoto(photoUrl, caption.trim());
+        newMessageIds.push(messageId);
+      } catch (err) {
+        console.error('Ошибка отправки F-сообщения:', err.message);
       }
     }
   }
+}
 
-  saveMessages(newMessageIds);
+// --- Затем отправляем ВСЕ G-сообщения ---
+for (const article in groupedByArticle) {
+  const items = groupedByArticle[article];
+  const gItems = items.filter(i => i.gText && i.gText.trim() !== '');
+
+  if (gItems.length > 0) {
+    let caption = `В Артикул ${article}\n\n`;
+
+    for (const item of gItems) {
+      const hasSize = item.size && item.size !== '0' && item.size !== '' && item.size !== '#N/A';
+      const label = hasSize ? `На размере ${item.size}` : `На баркоде ${item.barcode}`;
+      const avg = !isNaN(item.avgSales) && item.avgSales !== '' ? `средние продажи в день ${item.avgSales}шт.` : '';
+
+      caption += `${label}, ${avg}\n`;
+      caption += `${item.gText.trim()}\n`;
+      caption += `Остаток WB: ${item.stock}, Остаток ФФ: ${item.ffStock}\n\n`;
+    }
+
+    const photoUrl = gItems.find(item => item.photo)?.photo;
+    if (photoUrl) {
+      try {
+        const messageId = await sendPhoto(photoUrl, caption.trim());
+        newMessageIds.push(messageId);
+      } catch (err) {
+        console.error('Ошибка отправки G-сообщения:', err.message);
+      }
+    }
+  }
 }
 
 function loadMessages() {
