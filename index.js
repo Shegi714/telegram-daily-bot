@@ -67,8 +67,10 @@ async function main() {
     });
   }
 
-// --- Сначала отправляем ВСЕ F-сообщения ---
-for (const article in groupedByArticle) {
+  const allArticles = Object.keys(groupedByArticle).sort(); // отсортировать по артикулу
+
+// Сначала обрабатываем F-группу
+for (const article of allArticles) {
   const items = groupedByArticle[article];
   const fItems = items.filter(i => i.fText && i.fText.trim() !== '');
 
@@ -97,8 +99,8 @@ for (const article in groupedByArticle) {
   }
 }
 
-// --- Затем отправляем ВСЕ G-сообщения ---
-for (const article in groupedByArticle) {
+// Затем обрабатываем G-группу
+for (const article of allArticles) {
   const items = groupedByArticle[article];
   const gItems = items.filter(i => i.gText && i.gText.trim() !== '');
 
@@ -126,6 +128,7 @@ for (const article in groupedByArticle) {
     }
   }
 }
+
 
 function loadMessages() {
   if (!fs.existsSync(MESSAGE_HISTORY_FILE)) return [];
