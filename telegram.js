@@ -53,14 +53,27 @@ async function deleteMessage(messageId) {
   });
 
   const data = await response.json();
-  if (!data.ok && data.error_code === 429 && data.parameters?.retry_after) {
-    const waitTime = data.parameters.retry_after;
-    console.warn(`⏳ Rate limit на удаление: ждём ${waitTime} секунд...`);
-    await new Promise(resolve => setTimeout(resolve, waitTime * 1000));
-    return deleteMessage(messageId); // retry
+
+  if (!data.ok) {
+    if (data.error_code === 429 && data.parameters?.retry_after) {
+      const waitTime = data.parameters.retry_after;
+      console.warn(`⏳ Rate limit на удаление: ждём ${waitTime} секунд...`);
+      await new Promise(resolve => setTimeout(resolve, waitTime * 1000));
+      return deleteMessage(messageId); // retry
+    }
+
+    // ✅ Просто логируем, если сообщение уже удалено или не найдено
+    if (data.error_code === 400) {
+      console.warn(`⚠️ Сообщение ${messageId} уже удалено или не найдено`);
+      return false;
+    }
+
+    console.error(`❌ Ошибка удаления: ${data.description}`);
+    return false;
   }
 
-  return data.ok;
+  console.log(`🗑 Удалено сообщение: ${messageId}`);
+  return true;
 }
 
 module.exports = { sendPhoto, deleteMessage };
