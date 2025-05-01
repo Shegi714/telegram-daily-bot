@@ -45,48 +45,81 @@ async function main() {
   saveMessages([]);
 
   const newMessageIds = [];
+  const groupedByArticle = {};
 
+  // Группировка по артикулу
   for (const row of rows) {
-    const barcode = row[barcodeIndex];
     const article = row[articleIndex];
-    const photo = row[photoIndex];
-    const stock = row[stockIndex];
-    const ffStock = row[ffStockIndex];
-    const size = row[sizeIndex];
-    const avgSales = row[avgSalesIndex];
-    const fText = row[fTextIndex];
-    const gText = row[gTextIndex];
-    const manager = row[managerIndex];
+    if (!article) continue;
 
-    const avgSalesText = !isNaN(avgSales) && avgSales !== '' ? `средние продажи в день ${avgSales}шт.` : '';
-    const sizeOrBarcode = size && size !== '0' && size !== '#N/A' ? `На размере ${size}` : `На баркоде ${barcode}`;
+    if (!groupedByArticle[article]) groupedByArticle[article] = [];
 
-    // Формируем сообщение для F
-    if (fText && fText.trim() !== '') {
-      let caption = `В Артикул ${article}\n\n${sizeOrBarcode}, ${avgSalesText}\n`;
-      caption += `${manager ? manager + ', ' : ''}${fText.trim()}\n`;
-      caption += `Остаток WB: ${stock}, Остаток ФФ: ${ffStock}`;
-      if (photo) {
+    groupedByArticle[article].push({
+      barcode: row[barcodeIndex],
+      photo: row[photoIndex],
+      stock: row[stockIndex],
+      ffStock: row[ffStockIndex],
+      size: row[sizeIndex],
+      avgSales: row[avgSalesIndex],
+      fText: row[fTextIndex],
+      gText: row[gTextIndex],
+      manager: row[managerIndex]
+    });
+  }
+
+  // Обработка каждого артикула
+  for (const article in groupedByArticle) {
+    const items = groupedByArticle[article];
+
+    const fItems = items.filter(i => i.fText && i.fText.trim() !== '');
+    const gItems = items.filter(i => i.gText && i.gText.trim() !== '');
+
+    // F сообщение
+    if (fItems.length > 0) {
+      let caption = `В Артикул ${article}\n\n`;
+
+      for (const item of fItems) {
+        const hasSize = item.size && item.size !== '0' && item.size !== '' && item.size !== '#N/A';
+        const label = hasSize ? `На размере ${item.size}` : `На баркоде ${item.barcode}`;
+        const avg = !isNaN(item.avgSales) && item.avgSales !== '' ? `средние продажи в день ${item.avgSales}шт.` : '';
+
+        caption += `${label}, ${avg}\n`;
+        caption += `${item.manager ? item.manager + ', ' : ''}${item.fText.trim()}\n`;
+        caption += `Остаток WB: ${item.stock}, Остаток ФФ: ${item.ffStock}\n\n`;
+      }
+
+      const photoUrl = fItems.find(item => item.photo)?.photo;
+      if (photoUrl) {
         try {
-          const messageId = await sendPhoto(photo, caption);
+          const messageId = await sendPhoto(photoUrl, caption.trim());
           newMessageIds.push(messageId);
         } catch (err) {
-          console.error('Ошибка отправки сообщения F:', err.message);
+          console.error('Ошибка отправки F-сообщения:', err.message);
         }
       }
     }
 
-    // Формируем сообщение для G
-    if (gText && gText.trim() !== '') {
-      let caption = `В Артикул ${article}\n\n${sizeOrBarcode}, ${avgSalesText}\n`;
-      caption += `${gText.trim()}\n`;
-      caption += `Остаток WB: ${stock}, Остаток ФФ: ${ffStock}`;
-      if (photo) {
+    // G сообщение
+    if (gItems.length > 0) {
+      let caption = `В Артикул ${article}\n\n`;
+
+      for (const item of gItems) {
+        const hasSize = item.size && item.size !== '0' && item.size !== '' && item.size !== '#N/A';
+        const label = hasSize ? `На размере ${item.size}` : `На баркоде ${item.barcode}`;
+        const avg = !isNaN(item.avgSales) && item.avgSales !== '' ? `средние продажи в день ${item.avgSales}шт.` : '';
+
+        caption += `${label}, ${avg}\n`;
+        caption += `${item.gText.trim()}\n`;
+        caption += `Остаток WB: ${item.stock}, Остаток ФФ: ${item.ffStock}\n\n`;
+      }
+
+      const photoUrl = gItems.find(item => item.photo)?.photo;
+      if (photoUrl) {
         try {
-          const messageId = await sendPhoto(photo, caption);
+          const messageId = await sendPhoto(photoUrl, caption.trim());
           newMessageIds.push(messageId);
         } catch (err) {
-          console.error('Ошибка отправки сообщения G:', err.message);
+          console.error('Ошибка отправки G-сообщения:', err.message);
         }
       }
     }
@@ -96,14 +129,10 @@ async function main() {
 }
 
 function loadMessages() {
-  if (!fs.existsSync('messages.json')) return [];
-  return JSON.parse(fs.readFileSync('messages.json'));
+  if (!fs.existsSync(MESSAGE_HISTORY_FILE)) return [];
+  return JSON.parse(fs.readFileSync(MESSAGE_HISTORY_FILE));
 }
 
 function saveMessages(ids) {
-  fs.writeFileSync('messages.json', JSON.stringify(ids));
+  fs.writeFileSync(MESSAGE_HISTORY_FILE, JSON.stringify(ids));
 }
-
-main().catch((error) => {
-  console.error('Ошибка выполнения main:', error.message);
-});
