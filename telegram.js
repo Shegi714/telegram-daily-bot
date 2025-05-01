@@ -5,8 +5,7 @@ async function sendPhoto(photoUrl, caption) {
   const payload = {
     chat_id: process.env.TELEGRAM_CHAT_ID,
     photo: photoUrl,
-    caption,
-    parse_mode: 'HTML'
+    caption // no parse_mode!
   };
 
   let attempts = 0;
@@ -46,8 +45,8 @@ async function sendMessageWithFallback(photoUrl, caption) {
   const url = `https://api.telegram.org/bot${process.env.TELEGRAM_TOKEN}/sendMessage`;
   const payload = {
     chat_id: process.env.TELEGRAM_CHAT_ID,
-    text: `${caption}\n\nФото: ${photoUrl}`,
-    parse_mode: 'HTML'
+    text: `${caption}\n\nФото: ${photoUrl}`
+    // убрали parse_mode
   };
 
   const response = await fetch(url, {
