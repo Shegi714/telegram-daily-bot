@@ -37,8 +37,8 @@ async function main() {
   const oldMessages = loadMessages();
   console.log(`Загружено ${oldMessages.length} старых сообщений`);
 
-  // Если старые сообщения существуют, удаляем их
   if (oldMessages.length > 0) {
+    // Удаляем старые сообщения из Telegram
     for (const id of oldMessages) {
       console.log(`Попытка удаления сообщения с ID: ${id}`);
       try {
