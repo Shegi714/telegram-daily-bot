@@ -86,6 +86,9 @@ async function main() {
   const allArticles = Object.keys(groupedByArticle).sort(); // отсортировать по артикулу
 
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> parent of fa77644 (Update index.js)
 // Сначала обрабатываем F-группу
 for (const article of allArticles) {
   const items = groupedByArticle[article];
@@ -102,6 +105,7 @@ for (const article of allArticles) {
       caption += `${label}, ${avg}\n`;
       caption += `${item.manager ? item.manager + ', ' : ''}${item.fText.trim()}\n`;
       caption += `Остаток WB: ${item.stock}, Остаток ФФ: ${item.ffStock}\n\n`;
+<<<<<<< HEAD
 =======
   const newMessageIds = [];
 
@@ -129,11 +133,18 @@ for (const article of allArticles) {
     const photoUrl = fItems.find(item => item.photo)?.photo;
     if (photoUrl) {
 >>>>>>> parent of fa77644 (Update index.js)
+=======
+    }
+
+    const photoUrl = fItems.find(item => item.photo)?.photo;
+    if (photoUrl) {
+>>>>>>> parent of fa77644 (Update index.js)
       try {
         const messageId = await sendPhoto(photoUrl, caption.trim());
         newMessageIds.push(messageId);
       } catch (err) {
         console.error('Ошибка отправки F-сообщения:', err.message);
+<<<<<<< HEAD
 <<<<<<< HEAD
 =======
       const photoUrl = fItems.find(item => item.photo)?.photo;
@@ -145,6 +156,8 @@ for (const article of allArticles) {
           console.error('Ошибка отправки F-сообщения:', err.message);
         }
 >>>>>>> parent of 504ee09 (ыв)
+=======
+>>>>>>> parent of fa77644 (Update index.js)
 =======
 >>>>>>> parent of fa77644 (Update index.js)
       }
@@ -172,6 +185,7 @@ for (const article of allArticles) {
 
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
       caption += `${label}, ${avg}\n`;
       caption += `${item.gText.trim()}\n`;
       caption += `Остаток WB: ${item.stock}, Остаток ФФ: ${item.ffStock}\n\n`;
@@ -184,11 +198,16 @@ for (const article of allArticles) {
     const photoUrl = gItems.find(item => item.photo)?.photo;
     if (photoUrl) {
 >>>>>>> parent of fa77644 (Update index.js)
+=======
+    const photoUrl = gItems.find(item => item.photo)?.photo;
+    if (photoUrl) {
+>>>>>>> parent of fa77644 (Update index.js)
       try {
         const messageId = await sendPhoto(photoUrl, caption.trim());
         newMessageIds.push(messageId);
       } catch (err) {
         console.error('Ошибка отправки G-сообщения:', err.message);
+<<<<<<< HEAD
 <<<<<<< HEAD
 =======
       const photoUrl = gItems.find(item => item.photo)?.photo;
@@ -211,14 +230,20 @@ for (const article of allArticles) {
         newMessageIds.push(messageId);
       } catch (error) {
         console.error('Ошибка отправки фото:', error.message);
+=======
+>>>>>>> parent of fa77644 (Update index.js)
       }
     }
   }
+}
 
+<<<<<<< HEAD
   saveMessages(newMessageIds);
 >>>>>>> parent of 55c5318 (fix 2)
 }
 
+=======
+>>>>>>> parent of fa77644 (Update index.js)
 
 function loadMessages() {
   if (!fs.existsSync(MESSAGE_HISTORY_FILE)) return [];
