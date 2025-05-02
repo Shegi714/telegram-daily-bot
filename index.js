@@ -46,6 +46,7 @@ async function main() {
   const newMessageIds = [];
   const groupedByArticle = {};
 
+  // Группировка по артикулу
   for (const row of rows) {
     const article = row[articleIndex];
     if (!article) continue;
@@ -67,20 +68,25 @@ async function main() {
 
   const allArticles = Object.keys(groupedByArticle).sort();
 
-  // === F ===
+  // Сначала обрабатываем F-группу
   for (const article of allArticles) {
-    const fItems = groupedByArticle[article].filter(i => i.fText && i.fText.trim() !== '');
-    if (fItems.length === 0) continue;
+    const items = groupedByArticle[article];
+    const fItems = items.filter(i => i.fText && i.fText.trim() !== '');
 
-    let caption = `В Артикул ${article}\n\n`;
+    if (fItems.length > 0) {
+      let caption = `В Артикул ${article}\n\n`;
 
-    for (const item of fItems) {
-      const hasSize = item.size && item.size !== '0' && item.size !== '' && item.size !== '#N/A';
-      const label = hasSize ? `На размере ${item.size}` : `На баркоде ${item.barcode}`;
+      for (const item of fItems) {
+        const hasSize = item.size && item.size !== '0' && item.size !== '' && item.size !== '#N/A';
+        const label = hasSize ? `На размере ${item.size}` : `На баркоде ${item.barcode}`;
+        const avg = !isNaN(item.avgSales) && item.avgSales !== '' ? `средние продажи в день ${item.avgSales}шт.` : '';
 
-      const rawAvg = item.avgSales?.toString().replace(',', '.');
-      const avg = !isNaN(parseFloat(rawAvg)) ? `средние продажи в день ${rawAvg}шт.` : '';
+        caption += `${label}, ${avg}\n`;
+        caption += `${item.manager ? item.manager + ', ' : ''}${item.fText.trim()}\n`;
+        caption += `Остаток WB: ${item.stock}, Остаток ФФ: ${item.ffStock}\n\n`;
+      }
 
+<<<<<<< HEAD
       caption += `${label}, ${avg}\n`;
       caption += `${item.manager ? item.manager + ', ' : ''}${item.fText.trim()}\n`;
       caption += `Остаток WB: ${item.stock}, Остаток ФФ: ${item.ffStock}\n\n`;
@@ -94,24 +100,39 @@ async function main() {
         newMessageIds.push(messageId);
       } catch (err) {
         console.error('Ошибка отправки F-сообщения:', err.message);
+=======
+      const photoUrl = fItems.find(item => item.photo)?.photo;
+      if (photoUrl) {
+        try {
+          const messageId = await sendPhoto(photoUrl, caption.trim());
+          newMessageIds.push(messageId);
+        } catch (err) {
+          console.error('Ошибка отправки F-сообщения:', err.message);
+        }
+>>>>>>> parent of 504ee09 (ыв)
       }
     }
   }
 
-  // === G ===
+  // Затем обрабатываем G-группу
   for (const article of allArticles) {
-    const gItems = groupedByArticle[article].filter(i => i.gText && i.gText.trim() !== '');
-    if (gItems.length === 0) continue;
+    const items = groupedByArticle[article];
+    const gItems = items.filter(i => i.gText && i.gText.trim() !== '');
 
-    let caption = `В Артикул ${article}\n\n`;
+    if (gItems.length > 0) {
+      let caption = `В Артикул ${article}\n\n`;
 
-    for (const item of gItems) {
-      const hasSize = item.size && item.size !== '0' && item.size !== '' && item.size !== '#N/A';
-      const label = hasSize ? `На размере ${item.size}` : `На баркоде ${item.barcode}`;
+      for (const item of gItems) {
+        const hasSize = item.size && item.size !== '0' && item.size !== '' && item.size !== '#N/A';
+        const label = hasSize ? `На размере ${item.size}` : `На баркоде ${item.barcode}`;
+        const avg = !isNaN(item.avgSales) && item.avgSales !== '' ? `средние продажи в день ${item.avgSales}шт.` : '';
 
-      const rawAvg = item.avgSales?.toString().replace(',', '.');
-      const avg = !isNaN(parseFloat(rawAvg)) ? `средние продажи в день ${rawAvg}шт.` : '';
+        caption += `${label}, ${avg}\n`;
+        caption += `${item.gText.trim()}\n`;
+        caption += `Остаток WB: ${item.stock}, Остаток ФФ: ${item.ffStock}\n\n`;
+      }
 
+<<<<<<< HEAD
       caption += `${label}, ${avg}\n`;
       caption += `${item.gText.trim()}\n`;
       caption += `Остаток WB: ${item.stock}, Остаток ФФ: ${item.ffStock}\n\n`;
@@ -125,12 +146,22 @@ async function main() {
         newMessageIds.push(messageId);
       } catch (err) {
         console.error('Ошибка отправки G-сообщения:', err.message);
+=======
+      const photoUrl = gItems.find(item => item.photo)?.photo;
+      if (photoUrl) {
+        try {
+          const messageId = await sendPhoto(photoUrl, caption.trim());
+          newMessageIds.push(messageId);
+        } catch (err) {
+          console.error('Ошибка отправки G-сообщения:', err.message);
+        }
+>>>>>>> parent of 504ee09 (ыв)
       }
     }
   }
 
   saveMessages(newMessageIds);
-}
+} // <-- вот закрывающая скобка main
 
 function loadMessages() {
   if (!fs.existsSync(MESSAGE_HISTORY_FILE)) return [];

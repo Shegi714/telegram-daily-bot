@@ -1,11 +1,15 @@
 const fetch = require('node-fetch');
 
 async function sendPhoto(photoUrl, caption) {
-  const url = `https://api.telegram.org/bot${process.env.TELEGRAM_TOKEN}/sendPhoto`;
+  const url = `https://api.telegram.org/bot${process.env.TELEGRAM_BOT_TOKEN}/sendPhoto`;
   const payload = {
     chat_id: process.env.TELEGRAM_CHAT_ID,
     photo: photoUrl,
+<<<<<<< HEAD
     caption // no parse_mode!
+=======
+    caption: caption,
+>>>>>>> parent of 504ee09 (ыв)
   };
 
   let attempts = 0;
@@ -66,7 +70,7 @@ async function sendMessageWithFallback(photoUrl, caption) {
 }
 
 async function deleteMessage(messageId) {
-  const url = `https://api.telegram.org/bot${process.env.TELEGRAM_TOKEN}/deleteMessage`;
+  const url = `https://api.telegram.org/bot${process.env.TELEGRAM_BOT_TOKEN}/deleteMessage`;
   const payload = {
     chat_id: process.env.TELEGRAM_CHAT_ID,
     message_id: messageId,
