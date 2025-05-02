@@ -3,6 +3,7 @@ const fetch = require('node-fetch');
 async function sendPhoto(photoUrl, caption) {
   const url = `https://api.telegram.org/bot${process.env.TELEGRAM_BOT_TOKEN}/sendPhoto`;
 <<<<<<< HEAD
+<<<<<<< HEAD
   const payload = {
     chat_id: process.env.TELEGRAM_CHAT_ID,
     photo: photoUrl,
@@ -120,6 +121,37 @@ async function deleteMessage(messageId) {
   console.log(`🗑 Удалено сообщение: ${messageId}`);
   return true;
 =======
+    body: JSON.stringify({
+      chat_id: process.env.TELEGRAM_CHAT_ID,
+      message_id: messageId,
+    }),
+  });
+>>>>>>> parent of 55c5318 (fix 2)
+=======
+  const response = await fetch(url, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      chat_id: process.env.TELEGRAM_CHAT_ID,
+      photo: photoUrl,
+      caption: caption,
+    }),
+  });
+  const data = await response.json();
+  console.log('Ответ от Telegram:', data);
+
+  if (data.ok) {
+    return data.result.message_id;
+  } else {
+    throw new Error(data.description);
+  }
+}
+
+async function deleteMessage(messageId) {
+  const url = `https://api.telegram.org/bot${process.env.TELEGRAM_BOT_TOKEN}/deleteMessage`;
+  await fetch(url, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({
       chat_id: process.env.TELEGRAM_CHAT_ID,
       message_id: messageId,

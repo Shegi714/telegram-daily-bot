@@ -88,6 +88,7 @@ async function main() {
 
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> parent of fa77644 (Update index.js)
 // Сначала обрабатываем F-группу
@@ -244,6 +245,29 @@ for (const article in groupedByArticle) {
 
 <<<<<<< HEAD
 <<<<<<< HEAD
+=======
+  const newMessageIds = [];
+
+  for (const article in grouped) {
+    const items = grouped[article];
+    let caption = `В Артикул ${article} необходим дозаказ❗️\n`;
+
+    for (const item of items) {
+      caption += `Баркод: ${item.barcode}, Остаток WB: ${item.stock}, Остаток ФФ: ${item.ffStock}\n`;
+    }
+
+    const photoUrl = items.find(item => item.photo)?.photo;
+    if (photoUrl) {
+      try {
+        const messageId = await sendPhoto(photoUrl, caption);
+        newMessageIds.push(messageId);
+      } catch (error) {
+        console.error('Ошибка отправки фото:', error.message);
+      }
+    }
+  }
+
+>>>>>>> parent of 55c5318 (fix 2)
   saveMessages(newMessageIds);
 >>>>>>> parent of 55c5318 (fix 2)
 }
