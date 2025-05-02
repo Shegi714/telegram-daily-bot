@@ -53,6 +53,7 @@ async function main() {
 
     if (!groupedByArticle[article]) groupedByArticle[article] = [];
 
+<<<<<<< HEAD
     groupedByArticle[article].push({
       barcode: row[barcodeIndex],
       photo: row[photoIndex],
@@ -64,10 +65,27 @@ async function main() {
       gText: row[gTextIndex],
       manager: row[managerIndex]
     });
+=======
+    const isParticipate = participate === true || participate === 'TRUE';
+    const isIgnore = ignore === true || ignore === 'TRUE';
+
+    if (isParticipate && isIgnore) {
+      if (!grouped[article]) grouped[article] = [];
+      grouped[article].push({
+        photo: row[photoIndex] || '',
+        barcode: barcode,
+        stock: row[stockIndex] || 0,
+        ffStock: row[ffStockIndex] || 0,
+        size: row[sizeIndex] || '',
+        avgSales: row[avgSalesIndex] || '',
+      });
+    }
+>>>>>>> parent of 55c5318 (fix 2)
   }
 
   const allArticles = Object.keys(groupedByArticle).sort(); // отсортировать по артикулу
 
+<<<<<<< HEAD
 // Сначала обрабатываем F-группу
 for (const article of allArticles) {
   const items = groupedByArticle[article];
@@ -84,6 +102,16 @@ for (const article of allArticles) {
       caption += `${label}, ${avg}\n`;
       caption += `${item.manager ? item.manager + ', ' : ''}${item.fText.trim()}\n`;
       caption += `Остаток WB: ${item.stock}, Остаток ФФ: ${item.ffStock}\n\n`;
+=======
+  const newMessageIds = [];
+
+  for (const article in grouped) {
+    const items = grouped[article];
+    let caption = `В Артикул ${article} необходим дозаказ❗️\n`;
+
+    for (const item of items) {
+      caption += `Баркод: ${item.barcode}, Остаток WB: ${item.stock}, Остаток ФФ: ${item.ffStock}\n`;
+>>>>>>> parent of 55c5318 (fix 2)
     }
 
 <<<<<<< HEAD
@@ -95,6 +123,7 @@ for (const article of allArticles) {
 
     const photoUrl = fItems.find(item => item.photo)?.photo;
     if (photoUrl) {
+<<<<<<< HEAD
       console.log('📸 Отправка F-сообщения:', { photoUrl, caption: caption.trim() });
 =======
     const photoUrl = fItems.find(item => item.photo)?.photo;
@@ -176,6 +205,18 @@ for (const article of allArticles) {
       }
     }
   }
+=======
+      try {
+        const messageId = await sendPhoto(photoUrl, caption);
+        newMessageIds.push(messageId);
+      } catch (error) {
+        console.error('Ошибка отправки фото:', error.message);
+      }
+    }
+  }
+
+  saveMessages(newMessageIds);
+>>>>>>> parent of 55c5318 (fix 2)
 }
 
 
