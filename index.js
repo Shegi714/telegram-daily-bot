@@ -83,6 +83,7 @@ async function main() {
 >>>>>>> parent of 55c5318 (fix 2)
   }
 
+<<<<<<< HEAD
   const allArticles = Object.keys(groupedByArticle).sort(); // отсортировать по артикулу
 
 <<<<<<< HEAD
@@ -91,6 +92,10 @@ async function main() {
 >>>>>>> parent of fa77644 (Update index.js)
 // Сначала обрабатываем F-группу
 for (const article of allArticles) {
+=======
+// --- Сначала отправляем ВСЕ F-сообщения ---
+for (const article in groupedByArticle) {
+>>>>>>> parent of 98306ce (Update index.js)
   const items = groupedByArticle[article];
   const fItems = items.filter(i => i.fText && i.fText.trim() !== '');
 
@@ -165,8 +170,8 @@ for (const article of allArticles) {
   }
 }
 
-// Затем обрабатываем G-группу
-for (const article of allArticles) {
+// --- Затем отправляем ВСЕ G-сообщения ---
+for (const article in groupedByArticle) {
   const items = groupedByArticle[article];
   const gItems = items.filter(i => i.gText && i.gText.trim() !== '');
 
@@ -238,6 +243,7 @@ for (const article of allArticles) {
 }
 
 <<<<<<< HEAD
+<<<<<<< HEAD
   saveMessages(newMessageIds);
 >>>>>>> parent of 55c5318 (fix 2)
 }
@@ -245,6 +251,8 @@ for (const article of allArticles) {
 =======
 >>>>>>> parent of fa77644 (Update index.js)
 
+=======
+>>>>>>> parent of 98306ce (Update index.js)
 function loadMessages() {
   if (!fs.existsSync(MESSAGE_HISTORY_FILE)) return [];
   return JSON.parse(fs.readFileSync(MESSAGE_HISTORY_FILE));
