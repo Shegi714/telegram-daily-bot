@@ -33,15 +33,20 @@ async function main() {
     ffStockIndex, sizeIndex, avgSalesIndex, fTextIndex, gTextIndex, managerIndex
   });
 
+  // Загрузить старые сообщения
   const oldMessages = loadMessages();
+  console.log(`Загружено ${oldMessages.length} старых сообщений`);
+
+  // Удалить старые сообщения из Telegram
   for (const id of oldMessages) {
     try {
       await deleteMessage(id);
+      console.log(`Удалено сообщение с ID: ${id}`);
     } catch (e) {
       console.error('Ошибка удаления сообщения:', e.message);
     }
   }
-  saveMessages([]);
+  saveMessages([]); // Очистить список старых сообщений
 
   const newMessageIds = [];
   const groupedByArticle = {};
@@ -130,6 +135,7 @@ async function main() {
     }
   }
 
+  // Сохраняем новые ID сообщений
   saveMessages(newMessageIds);
 }
 
