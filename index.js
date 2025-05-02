@@ -33,15 +33,30 @@ async function main() {
     ffStockIndex, sizeIndex, avgSalesIndex, fTextIndex, gTextIndex, managerIndex
   });
 
+  // Загрузить старые сообщения
   const oldMessages = loadMessages();
-  for (const id of oldMessages) {
-    try {
-      await deleteMessage(id);
-    } catch (e) {
-      console.error('Ошибка удаления сообщения:', e.message);
+  console.log(`Загружено ${oldMessages.length} старых сообщений`);
+
+  // Если старые сообщения существуют, удаляем их
+  if (oldMessages.length > 0) {
+    for (const id of oldMessages) {
+      console.log(`Попытка удаления сообщения с ID: ${id}`);
+      try {
+        const success = await deleteMessage(id);
+        if (success) {
+          console.log(`✅ Сообщение с ID ${id} удалено успешно`);
+        } else {
+          console.warn(`⚠️ Сообщение с ID ${id} не найдено или не удалено`);
+        }
+      } catch (e) {
+        console.error('Ошибка удаления сообщения:', e.message);
+      }
     }
+  } else {
+    console.log('Нет старых сообщений для удаления');
   }
-  saveMessages([]);
+
+  saveMessages([]); // Очистить список старых сообщений
 
   const newMessageIds = [];
   const groupedByArticle = {};
@@ -130,15 +145,22 @@ async function main() {
     }
   }
 
+  // Сохраняем новые ID сообщений
   saveMessages(newMessageIds);
 }
 
 function loadMessages() {
-  if (!fs.existsSync(MESSAGE_HISTORY_FILE)) return [];
-  return JSON.parse(fs.readFileSync(MESSAGE_HISTORY_FILE));
+  if (!fs.existsSync(MESSAGE_HISTORY_FILE)) {
+    console.log('Файл с сообщениями не найден, создаём новый');
+    return [];
+  }
+  const data = JSON.parse(fs.readFileSync(MESSAGE_HISTORY_FILE));
+  console.log(`Загружено ${data.length} сообщений из файла`);
+  return data;
 }
 
 function saveMessages(ids) {
+  console.log('Сохраняем новые сообщения:', ids);
   fs.writeFileSync(MESSAGE_HISTORY_FILE, JSON.stringify(ids));
 }
 
