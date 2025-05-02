@@ -37,15 +37,25 @@ async function main() {
   const oldMessages = loadMessages();
   console.log(`Загружено ${oldMessages.length} старых сообщений`);
 
-  // Удалить старые сообщения из Telegram
-  for (const id of oldMessages) {
-    try {
-      await deleteMessage(id);
-      console.log(`Удалено сообщение с ID: ${id}`);
-    } catch (e) {
-      console.error('Ошибка удаления сообщения:', e.message);
+  if (oldMessages.length > 0) {
+    // Удаляем старые сообщения из Telegram
+    for (const id of oldMessages) {
+      console.log(`Попытка удаления сообщения с ID: ${id}`);
+      try {
+        const success = await deleteMessage(id);
+        if (success) {
+          console.log(`✅ Сообщение с ID ${id} удалено успешно`);
+        } else {
+          console.warn(`⚠️ Сообщение с ID ${id} не найдено или не удалено`);
+        }
+      } catch (e) {
+        console.error('Ошибка удаления сообщения:', e.message);
+      }
     }
+  } else {
+    console.log('Нет старых сообщений для удаления');
   }
+
   saveMessages([]); // Очистить список старых сообщений
 
   const newMessageIds = [];
