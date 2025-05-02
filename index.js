@@ -37,8 +37,8 @@ async function main() {
   const oldMessages = loadMessages();
   console.log(`Загружено ${oldMessages.length} старых сообщений`);
 
+  // Если старые сообщения существуют, удаляем их
   if (oldMessages.length > 0) {
-    // Удаляем старые сообщения из Telegram
     for (const id of oldMessages) {
       console.log(`Попытка удаления сообщения с ID: ${id}`);
       try {
@@ -150,11 +150,17 @@ async function main() {
 }
 
 function loadMessages() {
-  if (!fs.existsSync(MESSAGE_HISTORY_FILE)) return [];
-  return JSON.parse(fs.readFileSync(MESSAGE_HISTORY_FILE));
+  if (!fs.existsSync(MESSAGE_HISTORY_FILE)) {
+    console.log('Файл с сообщениями не найден, создаём новый');
+    return [];
+  }
+  const data = JSON.parse(fs.readFileSync(MESSAGE_HISTORY_FILE));
+  console.log(`Загружено ${data.length} сообщений из файла`);
+  return data;
 }
 
 function saveMessages(ids) {
+  console.log('Сохраняем новые сообщения:', ids);
   fs.writeFileSync(MESSAGE_HISTORY_FILE, JSON.stringify(ids));
 }
 
